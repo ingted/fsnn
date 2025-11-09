@@ -206,13 +206,13 @@ module Fsnn =
 
         let sumRecentInputs (window: windowSize) (input: neuronInput) =
             input
-            |> Seq.sortByDescending (fun (KeyValue(tick, _)) -> tick)
+            |> Seq.sortByDescending (fun kv -> kv.Key)
             |> Seq.truncate window
-            |> Seq.collect (fun (KeyValue(_, dendrites)) ->
-                dendrites
-                |> Seq.collect (fun (KeyValue(_, synapses)) ->
-                    synapses.Values
-                    |> Seq.collect (Seq.map snd)))
+            |> Seq.collect (fun tickEntry ->
+                tickEntry.Value.Values
+                |> Seq.collect (fun synapseEntry ->
+                    synapseEntry.Values
+                    |> Seq.map (fun kvp -> kvp.Value)))
             |> Seq.sum
 
     module ActivationCurves =
@@ -616,7 +616,7 @@ module Fsnn =
             | _ -> failwithf "Neuron '%s' not found." name
 
         let dendriteId (network: NetworkInstance) neuronName dendriteIndex =
-            match network.dendriteIds.TryGetValue((neuronName, dendriteIndex)) with
+            match network.dendriteIds.TryGetValue(neuronName, dendriteIndex) with
             | true, id -> id
             | _ -> failwithf "Dendrite %s[%d] not found." neuronName dendriteIndex
 
@@ -629,9 +629,7 @@ module Fsnn =
 
         let private floatOfBool value = if value then 1.0 else 0.0
 
-        let private sameConnectionShape
-            (current: (synapseId * (synapsePositionId * axonId)[] * (synapsePositionId * dendriteId)[])[])
-            (expected: (synapseId * (synapsePositionId * axonId)[] * (synapsePositionId * dendriteId)[])[]) =
+        let private sameConnectionShape (current: (synapseId * (synapsePositionId * axonId)[] * (synapsePositionId * dendriteId)[])[]) (expected: _) =
             if current.Length <> expected.Length then
                 false
             else
@@ -797,7 +795,7 @@ module Fsnn =
                 { name = name
                   aggregationFactory = AggregationCurves.weightedSum 0.65 })
 
-        let private wiringPlan : NamedWiringPlan =
+        let private wiringPlan =
             { axonLinks =
                 [ { region = "r1"; axon = "pre1"; weight = 1.0; position = Some 1 }
                   { region = "r2"; axon = "pre2"; weight = 0.5; position = Some 1 }
