@@ -1,0 +1,45 @@
+我想要有四個前級，兩個輸出，輸出的兩個cell共用三個突觸區域，四個前極單純使用四個突觸區域 （這樣的描述有問題也請告知怎樣正確）
+
+總之四個前級輸出分別為 pre1 pre2 pre3 pre4 突觸區域 r1 r2 r3分別有權重
+
+pre1 -> r1
+
+你說：
+https://gist.githubusercontent.com/ingted/45e807bdef24fc2d1f6ec4be484db72c/raw/2195b432b9f1119956fc02630eb5e380985f5ac9/fsnn
+
+給一個參考這段程式碼的 code ，初始化原始的輸入，我想要有四個前級，兩個輸出，輸出的兩個cell共用三個突觸區域，四個前極單純使用四個突觸區域 （這樣的描述有問題也請告知怎樣正確）
+
+四個前級輸出分別為 pre1 pre2 pre3 pre4 突觸區域 r1 r2 r3 輸出為 post1 post2
+
+分別有權重
+pre1 -> r1(w1) -> post1
+pre2 -> r2(w2) -> post1
+pre3 -> r2(w3) -> post2
+pre4 -> r3(w4) -> post2
+
+pre 輸入分別為 1 1 0 1 輸出直接 fun a -> a
+w1 ~ w4 分別為 1 0.5 0.5 1
+post1 輸出直接 sum input，大於 等於 0.75 輸出1
+post2 輸出直接 sum input，大於 等於 0.25 輸出1
+
+
+1. 上面是原始 POC 需求，完整可用的程式碼請參考 fsnn0.fsx
+
+2. 現在我想要正式的版本，fsnn6.fsx 是最小可用的 (MVP) 型別設計，你根據 POC 的功能基於 MVP 型別設計實作正式版 
+3. 要能通用化初始化 Neurons 至少前後級 以及 SynapseRegion []，隨機連接 
+4. 隨機連接函數需支援軸突突觸是否 1對1 或者有上限 
+4. 隨機連接函數需支援突觸樹突是否 1對1 或者有上限，是否可重複 
+初始化函數進行神經元初始化需考量 3. 4. 5.
+5. 需要一個 run 函數可以根據 axonId[] 建構代理 SynapseRegion 作為原始輸入
+ 
+6. 本系統沒有第幾層概念，整個神經網路以 graph 形式記錄 
+7. 目前為初版，未來需支援使用 FSharp.FGL 的圖結構儲存神經網路結構資訊，請預留彈性 
+
+8. activationCurve 類似化學系統，輸出(電信號)會影響自身(化學信號)
+9. 未來計算需要全改 GPU 計算，也請預留調整(run函數需可決定用 CPU 跑還是 GPU跑，這次請先實作CPU版本)
+
+10. 請附上完整單元測試案例，使用 FsUnit 之類，dotnet test 要能用 (現在是寫 fsx 腳本，不過以後會改成專案模式)
+
+11. 之後 neuron 會弄成跨機 akka.net cluster 跑 FRP 讓 tick 步進，也請考量 actor model 選擇 pattern (人類開法人員的開發面以及執行效能)
+12. 不要使用 private/internal 修飾詞
+13. 必須使用現有的 fsnn6.fsx 型別，這些型別不能更改，所以concurrentdictionary效能不好請繼續使用，未來確認都符合需求再優化資料結構ss
