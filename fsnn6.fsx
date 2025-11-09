@@ -25,10 +25,21 @@ type Neuron = {
     id: axonId
     output: neuronOutput
     input: neuronInput
-    activationCurve: activationCurve
+    mutable activationCurve: activationCurve
 }
+
 type SynapseRegion = { 
     id: synapseId; 
     connection: ConcurrentDictionary<tick, (synapsePositionId*axonId)[] * (synapsePositionId*dendriteId)[]>
-    aggregationCurve: aggregationCurve
+    mutable aggregationCurve: aggregationCurve
 }
+
+type RunContext = {
+    stateTick: tick
+    mutable curTick: tick
+    curConnection: (synapseId * (synapsePositionId*axonId)[] * (synapsePositionId*dendriteId)[])[]
+    curNeurons: ConcurrentDictionary<axonId, Neuron>
+    curSynapseRegions: ConcurrentDictionary<synapseId, SynapseRegion>
+}
+
+type RunState = RunContext []
